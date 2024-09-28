@@ -64,6 +64,9 @@ export default function App() {
   const [panelTitle, setPanelTitle] = useState('');
   const [panelArtists, setPanelArtists] = useState([]);
 
+  // Freeze profile components (info panel and popup)
+  const [freezeProfiles, setFreezeProfiles] = useState(false);
+
   // Canvas ref and states
   const canvasRef = useRef(null);
   const [offsetX, setOffsetX] = useState(0);
@@ -95,7 +98,8 @@ export default function App() {
 
   // Load new data in canvas
   const loadData = async (clusterId) => {
-    const url = "https://audiustest.s3.us-west-1.amazonaws.com/" + clusterId + '.json';  // please be nice!!!
+    // const url = "https://audiustest.s3.us-west-1.amazonaws.com/" + clusterId + '.json';
+    const url = "https://raw.githubusercontent.com/SeanCena/audiusdata/refs/heads/main/" + clusterId + ".json";  // github for the demo
     const data = await fetch(url);
     const clusterData = await data.json();
     setCanvasData(clusterData);
@@ -187,10 +191,12 @@ export default function App() {
                     if (artist === undefined) {
                       // Hide popup
                       setPopupVis(false);
+                      setFreezeProfiles(false);
                     } else {
-                      // Show popup
+                      // Show popup and keep it open
                       setPopupUserId(artist.id);
                       popupToCoords(artist.coordinates[0], artist.coordinates[1]);
+                      setFreezeProfiles(true);
                     }
                     break;
                 }
@@ -225,17 +231,19 @@ export default function App() {
                     case STATE_SUBLEVEL:
                       if (artist === undefined) {
                         // Hide popup, remove any highlights, hide side panel
-                        setPopupVis(false);
-                        setHighlight("");
-                        setPanelVis(false);
+                        setPopupVis(freezeProfiles);
+                        if (!freezeProfiles) setHighlight("");
+                        setPanelVis(freezeProfiles);
                       } else {
                         // Show popup, highlight subcluster, show side panel
-                        setPopupUserId(artist.id);
-                        popupToCoords(artist.coordinates[0], artist.coordinates[1]);
-                        setHighlight(cluster.id);
-                        setPanelArtists(cluster.artists.slice(0, 6));  // only the top five artists make it to the info panel
-                        setPanelTitle(cluster.name);
-                        setPanelVis(true);
+                        if (!freezeProfiles) {
+                          setPopupUserId(artist.id);
+                          popupToCoords(artist.coordinates[0], artist.coordinates[1]);
+                          setHighlight(cluster.id);
+                          setPanelArtists(cluster.artists.slice(0, 6));  // only the top five artists make it to the info panel
+                          setPanelTitle(cluster.name);
+                          setPanelVis(true);
+                        }
                       }
                       break;
                   }
