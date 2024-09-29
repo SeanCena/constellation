@@ -215,7 +215,7 @@ export default function App() {
 
         {/* Main container */}
         <Flex w='100%' h='calc(100vh - 90px)' backgroundColor='default'
-        {/* <Flex w='100%' h='calc(100vh - 90px)' backgroundColor={bgColors.Cyan} */}
+        /* <Flex w='100%' h='calc(100vh - 90px)' backgroundColor={bgColors.Cyan} */
               onMouseDown={(e)=>{
                 setIsMouseDown(true);
                 setPrevClickX(e.pageX);
