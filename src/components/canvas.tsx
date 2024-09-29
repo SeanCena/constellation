@@ -114,21 +114,23 @@ function drawGlowingStar(ctx, mapX, mapY, zoom, offsetX, offsetY, scale, starCol
     ctx.restore();
 }
 
-function drawStars(ctx, canvasData, highlight, zoom, offsetX, offsetY) {
+function drawStars(ctx, canvasData, highlight, zoom, offsetX, offsetY, color_s=STAR_COLOR, color_h=HIGHLIGHT_COLOR, color_g=GLOW_COLOR) {
     // Draw all stars in canvasData, and highlight cluster if applicable
     canvasData.data.forEach((cluster) => {
+        color_s = cluster.color;
         cluster.artists.forEach((artist) => {
             const x = artist.coordinates[0];
             const y = artist.coordinates[1];
             const scale = artist.size;
             // Can potentially do something with custom colors? And/or glow?
             if (cluster.id == highlight) {
-                drawGlowingStar(ctx, x, y, zoom, offsetX, offsetY, scale, STAR_COLOR, HIGHLIGHT_COLOR, 3);
+                drawGlowingStar(ctx, x, y, zoom, offsetX, offsetY, scale, color_s, color_h, 3);
             } else {
-                drawGlowingStar(ctx, x, y, zoom, offsetX, offsetY, scale, STAR_COLOR, GLOW_COLOR, 1);
+                drawGlowingStar(ctx, x, y, zoom, offsetX, offsetY, scale, color_s, color_g, 1);
             }
         });
     });
+
 }
 
 export default StarCanvas;
