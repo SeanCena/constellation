@@ -221,7 +221,7 @@ export default function App() {
                       } else {
                         // Highlight subcluster, show side panel, show info text
                         setHighlight(cluster.id);
-                        setPanelArtists(cluster.artists);
+                        setPanelArtists(cluster.artists.slice(0, 6));
                         setPanelTitle(cluster.name);
                         setPanelVis(true);
                         setInfoText(cluster.name);
