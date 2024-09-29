@@ -49,7 +49,10 @@ const audiusSdk = sdk({
 const STATE_TOPLEVEL = 0;  // viewing top level clusters
 const STATE_SUBLEVEL = 1;  // viewing subclusters
 
-const MOUSE_THRESHOLD = 20;  // hover and click only register if they're within this many pixels of a canvas item
+const MOUSE_THRESHOLD = 20;   // hover and click only register if they're within this many pixels of a canvas item
+const MAX_OFFSET = 5000;      // absolute value of x and y offset must be less than this
+const MAX_ZOOM = 10;
+const MIN_ZOOM = 0.1;
 
 export default function App() {
 
@@ -258,9 +261,21 @@ export default function App() {
               }}
               onMouseMove={(e)=>{
                 if (isMouseDown) {
-                  // Click and drag
-                  setOffsetX(prevOffsetX + (e.pageX - prevClickX) / zoom);
-                  setOffsetY(prevOffsetY + (e.pageY - prevClickY) / zoom);
+                  // Click and drag, but keep offsets within the maximum values
+                  let desiredOffsetX = prevOffsetX + (e.pageX - prevClickX) / zoom;
+                  let desiredOffsetY = prevOffsetY + (e.pageY - prevClickY) / zoom;
+                  if (desiredOffsetX > MAX_OFFSET) {
+                    desiredOffsetX = MAX_OFFSET;
+                  } else if (desiredOffsetX < -MAX_OFFSET) {
+                    desiredOffsetX = -MAX_OFFSET;
+                  }
+                  if (desiredOffsetY > MAX_OFFSET) {
+                    desiredOffsetY = MAX_OFFSET;
+                  } else if (desiredOffsetY < -MAX_OFFSET) {
+                    desiredOffsetY = -MAX_OFFSET;
+                  }
+                  setOffsetX(desiredOffsetX);
+                  setOffsetY(desiredOffsetY);
                 } else {
                   // Check if hovering over artist
                   const artistInfo = closestArtist(e.pageX, e.pageY);
@@ -317,13 +332,11 @@ export default function App() {
           <Flex direction='column' justifyContent='center' alignItems='center'
                 gap='xs' w='80px' p='l' style={{zIndex:2, position:'absolute', right:0}}>
 
-            {zoom < 10 ? (
-              // can't zoom in past 10x
+            {zoom < MAX_ZOOM ? (
               <Button size='small' variant='tertiary' onClick={zoomIn}><IconPlus color='default'></IconPlus></Button>
             ) : <Button size='small' variant='tertiary' disabled><IconPlus color='default'></IconPlus></Button>}
             
-            {zoom > 0.1 ? (
-              // can't zoom out past 0.1x
+            {zoom > MIN_ZOOM ? (
               <Button size='small' variant='tertiary' onClick={zoomOut}><IconMinus color='default'></IconMinus></Button>
             ) : <Button size='small' variant='tertiary' disabled><IconMinus color='default'></IconMinus></Button>}
 
