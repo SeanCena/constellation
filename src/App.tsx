@@ -1,6 +1,11 @@
 import { MouseEventHandler, useEffect, useRef, useState } from 'react'
 import { sdk, full as FullSdk } from '@audius/sdk'
 import {
+  GetTracksByUserSortDirectionEnum as sortTrackDirectionEnum,
+  GetTracksByUserSortMethodEnum as sortTrackMethodEnum,
+  GetTracksByUserFilterTracksEnum as filterTrackEnum
+} from '@audius/sdk'
+import {
   ThemeProvider as HarmonyThemeProvider,
   Hint,
   Paper,
@@ -77,6 +82,11 @@ export default function App() {
   const [canvasData, setCanvasData] = useState({data: []});
   const [highlight, setHighlight] = useState('');
 
+  // Audio ref and states
+  const audioRef = useRef(null);
+  const [audioSrc, setAudioSrc] = useState('');
+  const [audioIsPlaying, setAudioIsPlaying] = useState(false);
+
   // Popup funcs
   function popupToCoords(x, y) {
     // Note: spawns a popup at x and y pos RELATIVE TO THE MAP'S COORDINATE SYSTEM
@@ -121,6 +131,37 @@ export default function App() {
     return ret;
   }
 
+  // Audio funcs
+  const playTopTrack = async (userId) => {
+    const topTracks = await audiusSdk.users.getTracksByUser({
+      id: userId,
+      limit: 1,
+      filterTracks: filterTrackEnum.Public,
+      sortDirection: sortTrackDirectionEnum.Desc,
+      sortMethod: sortTrackMethodEnum.Plays
+    });
+    if (topTracks.data !== undefined) {
+      if (topTracks.data.length > 0) {
+        // We got a top track, so play it
+        const topTrack = topTracks.data[0];
+        const trackStreamUrl = await audiusSdk.tracks.streamTrack({trackId: topTrack.id});
+        setAudioSrc(trackStreamUrl);
+        setAudioIsPlaying(true);
+        return;  // to avoid the function call to stop playing below
+      }
+    }
+    setAudioIsPlaying(false);  // couldn't get a top track, so stop the player
+  };
+
+  // Responding to audio state changes
+  useEffect(() => {
+    if (audioIsPlaying && audioRef.current?.src) {
+      audioRef.current?.play()
+    } else {
+      audioRef.current?.pause()
+    }
+  }, [audioIsPlaying]);
+
   // Responding to zoom and offset state changes
   useEffect(() => {
     if (popupVis) popupToCoords(popupX, popupY); // move the popup
@@ -135,16 +176,18 @@ export default function App() {
     switch(appState){
       case STATE_TOPLEVEL:
         // show: top level clusters
-        // hide: back button, info text
+        // hide: back button, info text, audio
         loadData("cluster_0");
         setBackButtonVis(false);
         setInfoTextVis(false);
+        setAudioIsPlaying(false);
         break;
       case STATE_SUBLEVEL:
         // show: back button, info text
-        // hide: 
+        // hide: audio
         setBackButtonVis(true);
         setInfoTextVis(true);
+        setAudioIsPlaying(false);
         break;
     }
   }, [appState]);
@@ -180,7 +223,7 @@ export default function App() {
                 switch (appState) {
                   case STATE_TOPLEVEL:
                     if (artist === undefined) {
-                      // Do nothing
+                      // Nothing to do
                     } else {
                       // Go to that artist's cluster
                       loadData(cluster.id);
@@ -189,13 +232,15 @@ export default function App() {
                     break;
                   case STATE_SUBLEVEL:
                     if (artist === undefined) {
-                      // Hide popup
+                      // Hide popup, stop audio
                       setPopupVis(false);
+                      setAudioIsPlaying(false);
                       setFreezeProfiles(false);
                     } else {
-                      // Show popup and keep it open
+                      // Show popup and keep it open, play artist's top track
                       setPopupUserId(artist.id);
                       popupToCoords(artist.coordinates[0], artist.coordinates[1]);
+                      playTopTrack(artist.id);
                       setFreezeProfiles(true);
                     }
                     break;
@@ -214,30 +259,34 @@ export default function App() {
                   switch (appState) {
                     case STATE_TOPLEVEL:
                       if (artist === undefined) {
-                        // Remove any highlights, hide side panel, hide info text
+                        // Remove any highlights, hide side panel, hide info text, stop audio
                         setHighlight("");
                         setPanelVis(false);
                         setInfoTextVis(false);
+                        setAudioIsPlaying(false);
                       } else {
-                        // Highlight subcluster, show side panel, show info text
+                        // Highlight subcluster, show side panel, show info text, play top track from top artist
                         setHighlight(cluster.id);
                         setPanelArtists(cluster.artists.slice(0, 6));
                         setPanelTitle(cluster.name);
                         setPanelVis(true);
                         setInfoText(cluster.name);
                         setInfoTextVis(true);
+                        playTopTrack(cluster.artists[0].id);
                       }
                       break;
                     case STATE_SUBLEVEL:
                       if (artist === undefined) {
-                        // Hide popup, remove any highlights, hide side panel
+                        // Hide popup, remove any highlights, hide side panel, stop audio
                         setPopupVis(freezeProfiles);
                         if (!freezeProfiles) setHighlight("");
                         setPanelVis(freezeProfiles);
+                        if (!freezeProfiles) setAudioIsPlaying(false);
                       } else {
-                        // Show popup, highlight subcluster, show side panel
+                        // Show popup, play audio, highlight subcluster, show side panel
                         if (!freezeProfiles) {
                           setPopupUserId(artist.id);
+                          playTopTrack(artist.id);
                           popupToCoords(artist.coordinates[0], artist.coordinates[1]);
                           setHighlight(cluster.id);
                           setPanelArtists(cluster.artists.slice(0, 6));  // only the top five artists make it to the info panel
@@ -310,6 +359,14 @@ export default function App() {
         </Flex>
 
       </Flex>
+
+      {/* Playing music on hover over artist */}
+      <audio
+        css={{ display: 'none' }}
+        src={audioSrc}
+        ref={audioRef}
+        autoPlay
+      />
 
     </HarmonyThemeProvider>
   )
