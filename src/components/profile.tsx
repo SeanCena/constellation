@@ -104,7 +104,7 @@ const PreviewProfile = (props) => {
                 {/* Profile picture */}
                 <Avatar src={pfp} size='medium'></Avatar>
                 {/* Handle */}
-                <Text variant='title' color='default' size='l' strength='weak'>{handle}</Text>
+                <Text variant='title' color='heading' size='l' strength='weak'>{handle}</Text>
             </Flex>
             {/* Body */}
             <Text variant='body' color='default' size='l' strength='weak'>{bio}</Text>

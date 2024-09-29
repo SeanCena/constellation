@@ -1,4 +1,5 @@
 import { MouseEventHandler, useEffect, useRef, useState } from 'react'
+
 import { sdk, full as FullSdk } from '@audius/sdk'
 import {
   GetTracksByUserSortDirectionEnum as sortTrackDirectionEnum,
@@ -276,7 +277,9 @@ export default function App() {
                       } else {
                         // Highlight subcluster, show side panel, show info text, play top track from top artist
                         setHighlight(cluster.id);
-                        setPanelArtists(cluster.artists.slice(0, 6));
+                        // IZ: Put the top 5 artists and most obscure 2 artists on the side bar
+                        var top_5_bottom_2 = [].concat(cluster.artists.slice(0, 5), cluster.artists.slice(-2));
+                        setPanelArtists(top_5_bottom_2);  // only the top five artists make it to the info panel
                         setPanelTitle(cluster.name);
                         setPanelVis(true);
                         setInfoText(cluster.name);
@@ -298,7 +301,9 @@ export default function App() {
                           playTopTrack(artist.id);
                           popupToCoords(artist.coordinates[0], artist.coordinates[1]);
                           setHighlight(cluster.id);
-                          setPanelArtists(cluster.artists.slice(0, 6));  // only the top five artists make it to the info panel
+                          // IZ: Put the top 5 artists and most obscure 2 artists on the side bar
+                          var top_5_bottom_2 = [].concat(cluster.artists.slice(0, 5), cluster.artists.slice(-2));
+                          setPanelArtists(top_5_bottom_2);  // only the top five artists make it to the info panel
                           setPanelTitle(cluster.name);
                           setPanelVis(true);
                         }
@@ -350,8 +355,14 @@ export default function App() {
             <Flex direction='column' justifyContent='flex-start' alignItems='center'
                   gap='l' w='100%' p='l'
                   backgroundColor='white' borderRadius='s'>
-              <Text variant='title' color='default' size='l' strength='default'>{panelTitle}</Text>
-              {panelArtists.map((artist) => (
+              <Text variant='title' color='heading' size='l' strength='default'>{panelTitle}</Text>
+              <Text variant='title' color='active' size='1' strength='default'>{'Top Artists'}</Text>
+              {panelArtists.slice(0,5).map((artist) => (
+                <LeaderboardProfile userId={artist.id} key={artist.id}></LeaderboardProfile>
+              ))}
+              <Text variant='title' color='active' size='0.7' strength='default'>{'Fresh Faces'}</Text>
+              {/* <Text variant='title' color='default' size='l' strength='default'>{'...'}</Text> */}
+              {panelArtists.slice(-2).map((artist) => (
                 <LeaderboardProfile userId={artist.id} key={artist.id}></LeaderboardProfile>
               ))}
             </Flex>
