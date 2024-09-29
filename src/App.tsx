@@ -24,6 +24,13 @@ import { css } from '@emotion/react'
 import StarCanvas from './components/canvas'
 import {LeaderboardProfile, PreviewProfile} from './components/profile'
 
+var bgColors = {    "Default": "#81b71a",
+                    "Blue": "#00B1E1",
+                    "Cyan": "#37BC9B",
+                    "Green": "#8CC152",
+                    "Red": "#E9573F",
+                    "Yellow": "#F6BB42",
+};
 
 
 const audiusSdk = sdk({
@@ -164,7 +171,8 @@ export default function App() {
         </Flex>
 
         {/* Main container */}
-        <Flex w='100%' h='calc(100vh - 90px)' backgroundColor='surface2'
+        <Flex w='100%' h='calc(100vh - 90px)' backgroundColor='default'
+        {/* <Flex w='100%' h='calc(100vh - 90px)' backgroundColor={bgColors.Cyan} */}
               onMouseDown={(e)=>{
                 setIsMouseDown(true);
                 setPrevClickX(e.pageX);
