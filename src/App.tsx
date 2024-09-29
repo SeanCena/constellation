@@ -163,6 +163,7 @@ export default function App() {
   // Responding to audio state changes
   useEffect(() => {
     if (audioIsPlaying && audioRef.current?.src) {
+      audioRef.current.volume = 0.5;
       audioRef.current?.play()
     } else {
       audioRef.current?.pause()
