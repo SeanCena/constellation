@@ -3,7 +3,7 @@ import React, { useRef, useImperativeHandle, useEffect, useState, forwardRef } f
 
 
 const DEFAULT_STAR_SIZE = 7;
-const STAR_COLOR = 'rgba(252, 252, 252, 1)';            // day neutral-n25
+const STAR_COLOR = 'rgba(252, 252, 252, 1)';          // day neutral-n25
 const GLOW_COLOR = 'rgba(145, 71, 204, 1)';           // dark background-accent
 const HIGHLIGHT_COLOR = 'rgba(243, 240, 247, 1)';     // day special-background
 
@@ -12,7 +12,15 @@ interface Dimensions {
     height: number;
 }
 
-const StarCanvas: React.FC = forwardRef((props, ref) => {
+interface CanvasProps {
+    zoom: number;
+    offsetX: number;
+    offsetY: number;
+    canvasData;  // Gah I don't know how to specify these, need more training in the typescript gym
+    highlight;
+}
+
+const StarCanvas: React.FC = forwardRef((props: CanvasProps, ref) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const [dimensions, setDimensions] = useState<Dimensions>({ width: 0, height: 0 });

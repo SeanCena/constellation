@@ -103,8 +103,7 @@ export default function App() {
   //IZ: For currently playing bar
   const [currentTrack, setCurrentTrack] = useState('')
   const [currentArtist, setCurrentArtist] = useState('')
-  const [currentTrackUrl, setCurrentTrackUrl] = useState('')
-  const [currentArtistUrl, setCurrentArtistUrl] = useState('')
+  const [currentArtistUrl, setCurrentArtistUrl] = useState('')  // apparently track permalink doesn't work
 
   // Search bar func (go to artist)
   const goToArtist = async () => {
@@ -141,9 +140,6 @@ export default function App() {
   // Popup funcs
   function popupToCoords(x, y) {
     // Note: spawns a popup at x and y pos RELATIVE TO THE MAP'S COORDINATE SYSTEM
-    const canvas = canvasRef.current.canvasElement;
-    const h = canvas.height;
-    const w = canvas.width;
     setPopupX(x);
     setPopupY(y);
     setPopupVis(true);
@@ -210,9 +206,6 @@ export default function App() {
         //IZ: Hold current playing track as state
         setCurrentTrack(topTrack.title);
         setCurrentArtist(user.data.handle);
-        // setCurrentArtist(topTrack.id)
-        
-        setCurrentTrackUrl(topTrack.permalink)
         setCurrentArtistUrl('https://audius.co/' + user.data.handle)
 
         const trackStreamUrl = await audiusSdk.tracks.streamTrack({trackId: topTrack.id});
