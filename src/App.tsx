@@ -18,7 +18,7 @@ import {
 } from '@audius/harmony'
 import {
   IconAudiusLogoColor,
-  IconInfo,
+  IconSearch,
   IconPlus,
   IconMinus,
   IconCaretLeft,
@@ -50,9 +50,14 @@ const STATE_TOPLEVEL = 0;  // viewing top level clusters
 const STATE_SUBLEVEL = 1;  // viewing subclusters
 
 const MOUSE_THRESHOLD = 20;   // hover and click only register if they're within this many pixels of a canvas item
-const MAX_OFFSET = 5000;      // absolute value of x and y offset must be less than this
+const MAX_OFFSET = 2000;      // absolute value of x and y offset must be less than this
 const MAX_ZOOM = 10;
 const MIN_ZOOM = 0.1;
+
+// Lookup table
+const STORAGE_ENDPOINT = "https://raw.githubusercontent.com/SeanCena/audiusdata/refs/heads/main/";  // github for the demo
+const clusterLut = await (await fetch(STORAGE_ENDPOINT + "id_to_cluster_lut.json")).json();
+const topLvlData = await (await fetch(STORAGE_ENDPOINT + "cluster_0.json")).json();
 
 export default function App() {
 
@@ -70,6 +75,10 @@ export default function App() {
   const [popupX, setPopupX] = useState(0);        // popup x pos relative to the map coords
   const [popupY, setPopupY] = useState(0);        // popup y pos relative to the map coords
 
+  // Search bar ref and states
+  const searchRef = useRef(null);
+  const [searchButtonText, setSearchButtonText] = useState('Find artist');
+
   // Top info bar states
   const [backButtonVis, setBackButtonVis] = useState(false);
   const [infoTextVis, setInfoTextVis] = useState(false);
@@ -80,7 +89,7 @@ export default function App() {
   const [panelTitle, setPanelTitle] = useState('');
   const [panelArtists, setPanelArtists] = useState([]);
 
-  // Freeze profile components (info panel and popup)
+  // Freeze profile components (info panel, popup, and audio)
   const [freezeProfiles, setFreezeProfiles] = useState(false);
 
   // Canvas ref and states
@@ -97,6 +106,38 @@ export default function App() {
   const audioRef = useRef(null);
   const [audioSrc, setAudioSrc] = useState('');
   const [audioIsPlaying, setAudioIsPlaying] = useState(false);
+
+  // Search bar func (go to artist)
+  const goToArtist = async () => {
+    setSearchButtonText("Loading...");
+    // First search for searchTerm, get an ID
+    const users = await audiusSdk.users.searchUsers({
+      query: searchRef.current?.value ?? ""
+    });
+    if (users.data !== undefined) {
+      if (users.data.length > 0) {
+        let clusterId = undefined;
+        users.data.some((user)=>{
+          // Iterate through all search results, go to the first one found in the lookup table
+          if (user.id in clusterLut) {
+            clusterId = "cluster_" + clusterLut[user.id];
+            return true;
+          }
+        });
+        if (clusterId !== undefined) {
+          // Load data for clusterId, change info text, change app state
+          loadData(clusterId);
+          let clusterName = "";
+          topLvlData.data.forEach((cluster)=>{ if (cluster.id === clusterId) clusterName = cluster.name; });
+          setInfoText(clusterName);
+          setAppState(STATE_SUBLEVEL);
+          setSearchButtonText("Find user");
+          return;
+        }
+      }
+    }
+    setSearchButtonText('User not found');
+  }
 
   // Popup funcs
   function popupToCoords(x, y) {
@@ -119,11 +160,14 @@ export default function App() {
 
   // Load new data in canvas
   const loadData = async (clusterId) => {
-    // const url = "https://audiustest.s3.us-west-1.amazonaws.com/" + clusterId + '.json';
-    const url = "https://raw.githubusercontent.com/SeanCena/audiusdata/refs/heads/main/" + clusterId + ".json";  // github for the demo
-    const data = await fetch(url);
-    const clusterData = await data.json();
-    setCanvasData(clusterData);
+    if (clusterId === "cluster_0") {
+      setCanvasData(topLvlData);  // top level data is already downloaded, no need to download again
+    } else {
+      const url = STORAGE_ENDPOINT + clusterId + ".json";
+      const data = await fetch(url);
+      const clusterData = await data.json();
+      setCanvasData(clusterData);
+    }
   }
 
   // Given a coordinate pair, return which artist it is close to, along with their subcluster
@@ -188,11 +232,12 @@ export default function App() {
     switch(appState){
       case STATE_TOPLEVEL:
         // show: top level clusters
-        // hide: back button, info text, audio
+        // hide: back button, info text, audio, popups
         loadData("cluster_0");
         setBackButtonVis(false);
         setInfoTextVis(false);
         setAudioIsPlaying(false);
+        setPopupVis(false);
         break;
       case STATE_SUBLEVEL:
         // show: back button, info text
@@ -354,6 +399,16 @@ export default function App() {
               <Text variant='title' color='default' size='l' strength='default'>{infoText}</Text>
             ) : <></>}
 
+          </Flex>
+
+          {/* Search bar */}
+          <Flex justifyContent='center' alignItems='center'
+                w='100%' p='l' style={{position:'absolute', bottom:0}}>
+            <Flex direction='row' justifyContent='center' alignItems='center'
+                  gap='l' w='400px'>
+              <TextInput label='Search' placeholder='Search' ref={searchRef} size={TextInputSize.SMALL} startIcon={IconSearch} />
+              <Button size='small' onClick={goToArtist}>{searchButtonText}</Button>
+            </Flex>
           </Flex>
 
           {/* Artist profile info */}

@@ -55,6 +55,12 @@ const StarCanvas: React.FC = forwardRef((props, ref) => {
             canvas.height = dimensions.height;
 
             // Draw background on the canvas (optional)
+            drawStarChartBackground(
+                context,
+                props.zoom,
+                props.offsetX,
+                props.offsetY
+                );
 
             // Draw points on the canvas
             drawStars(
@@ -124,13 +130,65 @@ function drawStars(ctx, canvasData, highlight, zoom, offsetX, offsetY, color_s=S
             const scale = artist.size;
             // Can potentially do something with custom colors? And/or glow?
             if (cluster.id == highlight) {
-                drawGlowingStar(ctx, x, y, zoom, offsetX, offsetY, scale, color_s, color_h, 3);
+                drawGlowingStar(ctx, x, y, zoom, offsetX, offsetY, scale, color_s, color_h, 4);
             } else {
-                drawGlowingStar(ctx, x, y, zoom, offsetX, offsetY, scale, color_s, color_g, 1);
+                drawGlowingStar(ctx, x, y, zoom, offsetX, offsetY, scale, color_s, color_g, 2);
             }
         });
     });
 
+}
+
+function drawStarChartBackground(ctx, zoom, offsetX, offsetY) {
+    const centerX = ctx.canvas.width / 2;
+    const centerY = ctx.canvas.height / 2;
+  
+    ctx.save();
+    ctx.translate(centerX, centerY);
+    ctx.scale(zoom, zoom);
+    ctx.translate(offsetX, offsetY);
+  
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+    ctx.lineWidth = 1 / zoom;
+
+    const borderRadius = 1300;
+    const spacing = Math.round(borderRadius/5);
+  
+    // Draw concentric circles
+    for (let radius = spacing; radius < 5 * spacing; radius += spacing) {
+        ctx.beginPath();
+        ctx.arc(0, 0, radius, 0, Math.PI * 2);
+        ctx.stroke();
+    }
+  
+    // Draw radial lines
+    for (let i = 0; i < 12; i++) {
+        const angle = (i / 12) * Math.PI * 2;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(Math.cos(angle) * borderRadius, Math.sin(angle) * borderRadius);
+        ctx.stroke();
+    }
+  
+    // Draw ornate border
+    ctx.beginPath();
+    ctx.arc(0, 0, borderRadius, 0, Math.PI * 2);
+    ctx.stroke();
+  
+    // Add ornate details to the border
+    for (let i = 0; i < 72; i++) {
+        const angle = (i / 72) * Math.PI * 2;
+        const innerRadius = borderRadius - 5;
+        const outerRadius = borderRadius + 5;
+        ctx.beginPath();
+        ctx.arc(0, 0, innerRadius, angle, angle + Math.PI / 72);
+        ctx.arc(0, 0, outerRadius, angle + Math.PI / 72, angle, true);
+        ctx.closePath();
+        ctx.fill();
+    }
+  
+    ctx.restore();
 }
 
 export default StarCanvas;
