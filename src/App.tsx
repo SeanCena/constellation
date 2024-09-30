@@ -97,7 +97,11 @@ export default function App() {
   const audioRef = useRef(null);
   const [audioSrc, setAudioSrc] = useState('');
   const [audioIsPlaying, setAudioIsPlaying] = useState(false);
-
+  //IZ: For currently playing bar
+  const [currentTrack, setCurrentTrack] = useState('')
+  const [currentArtist, setCurrentArtist] = useState('')
+  const [currentTrackUrl, setCurrentTrackUrl] = useState('')
+  const [currentArtistUrl, setCurrentArtistUrl] = useState('')
   // Popup funcs
   function popupToCoords(x, y) {
     // Note: spawns a popup at x and y pos RELATIVE TO THE MAP'S COORDINATE SYSTEM
@@ -142,6 +146,12 @@ export default function App() {
     return ret;
   }
 
+  function backButtonPressed() {
+      // ()=>setAppState(STATE_TOPLEVEL);
+      setAppState(STATE_TOPLEVEL);
+      setPopupVis(false);
+  }
+
   // Audio funcs
   const playTopTrack = async (userId) => {
     const topTracks = await audiusSdk.users.getTracksByUser({
@@ -151,10 +161,22 @@ export default function App() {
       sortDirection: sortTrackDirectionEnum.Desc,
       sortMethod: sortTrackMethodEnum.Plays
     });
+    const user = await audiusSdk.users.getUser({
+      id: userId,
+    });
     if (topTracks.data !== undefined) {
       if (topTracks.data.length > 0) {
         // We got a top track, so play it
         const topTrack = topTracks.data[0];
+        //IZ: Hold current playing track as state
+        setCurrentTrack(topTrack.title);
+        setCurrentArtist(user.data.handle)
+        // setCurrentArtist(topTrack.id)
+        
+        setCurrentTrackUrl(topTrack.permalink)
+        setCurrentArtistUrl('https://audius.co/' + user.data.handle)
+
+
         const trackStreamUrl = await audiusSdk.tracks.streamTrack({trackId: topTrack.id});
         setAudioSrc(trackStreamUrl);
         setAudioIsPlaying(true);
@@ -171,6 +193,7 @@ export default function App() {
       audioRef.current?.play()
     } else {
       audioRef.current?.pause()
+      // setCurrentTrack("");
     }
   }, [audioIsPlaying]);
 
@@ -193,6 +216,8 @@ export default function App() {
         setBackButtonVis(false);
         setInfoTextVis(false);
         setAudioIsPlaying(false);
+        setCurrentTrack("");
+        setCurrentArtist("");
         break;
       case STATE_SUBLEVEL:
         // show: back button, info text
@@ -200,6 +225,8 @@ export default function App() {
         setBackButtonVis(true);
         setInfoTextVis(true);
         setAudioIsPlaying(false);
+        setCurrentTrack("");
+        setCurrentArtist("");
         break;
     }
   }, [appState]);
@@ -347,13 +374,37 @@ export default function App() {
                 gap='l' w='100%' p='l' style={{zIndex:1, position:'absolute', top:0}}>
 
             {backButtonVis ? (
-              <Button size='default' variant='tertiary' onClick={()=>setAppState(STATE_TOPLEVEL)}><IconCaretLeft size='l' color='default'></IconCaretLeft></Button>
+              <Button size='default' variant='tertiary' onClick={backButtonPressed}><IconCaretLeft size='l' color='default'></IconCaretLeft></Button>
             ) : <></>}
 
             {infoTextVis ? (
               <Text variant='title' color='default' size='l' strength='default'>{infoText}</Text>
             ) : <></>}
 
+          </Flex>
+          
+
+          {/* "Now Playing" Bar */}
+          {/*IZ: HOW DO I MAKE THE FUCKING BAR SCALE*/}
+          <Flex direction='row' justifyContent='left' alignItems='left'
+                gap='l' w='35%' p='l' style={{zIndex:1, position:'absolute', left:0, bottom:0}}>
+            <Flex direction='row' justifyContent='flex-start' alignItems='left'
+            gap='l' w='35%' p='l' backgroundColor='white' borderRadius='s' style={{flex:1}}>
+
+              {true ? (
+                <Text variant='title' color='default' size='5' strength='default'>{'Now Playing: '}</Text>
+              ) : <></>}
+
+              {(audioIsPlaying)? (
+                <Button variant='tertiary' onClick={()=> window.open(currentArtistUrl, "_blank")} style={{width:'80%'}}>
+                  <Text variant='title' color='heading' size='5' strength='default'>{currentTrack}</Text>
+                  <Text variant='title' color='default' size='5' strength='default'>{' by '}</Text>
+                  <Text variant='title' color='heading' size='5' strength='default' style={{}}>{currentArtist}</Text>                
+                </Button>          
+              ) : <></>}
+              
+            
+            </Flex>
           </Flex>
 
           {/* Artist profile info */}
