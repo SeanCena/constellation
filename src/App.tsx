@@ -111,6 +111,7 @@ export default function App() {
   const [currentArtist, setCurrentArtist] = useState('')
   const [currentTrackUrl, setCurrentTrackUrl] = useState('')
   const [currentArtistUrl, setCurrentArtistUrl] = useState('')
+
   // Search bar func (go to artist)
   const goToArtist = async () => {
     setSearchButtonText("Loading...");
@@ -214,12 +215,11 @@ export default function App() {
         const topTrack = topTracks.data[0];
         //IZ: Hold current playing track as state
         setCurrentTrack(topTrack.title);
-        setCurrentArtist(user.data.handle)
+        setCurrentArtist(user.data.handle);
         // setCurrentArtist(topTrack.id)
         
         setCurrentTrackUrl(topTrack.permalink)
         setCurrentArtistUrl('https://audius.co/' + user.data.handle)
-
 
         const trackStreamUrl = await audiusSdk.tracks.streamTrack({trackId: topTrack.id});
         setAudioSrc(trackStreamUrl);
@@ -437,27 +437,36 @@ export default function App() {
               <Button size='small' onClick={goToArtist}>{searchButtonText}</Button>
             </Flex>
           </Flex>
-          
 
           {/* "Now Playing" Bar */}
           {/*IZ: HOW DO I MAKE THE FUCKING BAR SCALE*/}
-          <Flex direction='row' justifyContent='left' alignItems='left'
-                gap='l' w='35%' p='l' style={{zIndex:1, position:'absolute', left:0, bottom:0}}>
-            <Flex direction='row' justifyContent='flex-start' alignItems='left'
-            gap='l' w='35%' p='l' backgroundColor='white' borderRadius='s' style={{flex:1}}>
+          <Flex direction='row' justifyContent='center' alignItems='flex-start'
+                gap='l' p='l' style={{zIndex:1, position:'absolute', left:0, bottom:0}}>
+            <Flex direction='row' justifyContent='center' alignItems='flex-start'
+                  gap='l'>
 
-              {true ? (
-                <Text variant='title' color='default' size='5' strength='default'>{'Now Playing: '}</Text>
+              {/* Today on Top Dev, Isaac learns that you don't need to wrap literally everything in curly brackets */}
+              <Text variant='title' color='default' strength='default'>Now Playing: </Text>
+
+              {/* Let's try something different (all text and no buttons) */}
+              {(audioIsPlaying)? (
+                <Text variant='title' color='heading' onClick={()=> window.open(currentArtistUrl, "_blank")} style={{cursor:'pointer'}}>
+                  {(()=>{
+                    const playingMsg = currentArtist + " - " + currentTrack;
+                    return playingMsg.length > 30 ? playingMsg.slice(0, 30) + "..." : playingMsg;
+                  })()}
+                </Text>       
               ) : <></>}
 
+              {/*
               {(audioIsPlaying)? (
-                <Button variant='tertiary' onClick={()=> window.open(currentArtistUrl, "_blank")} style={{width:'80%'}}>
+                <Button variant='tertiary' onClick={()=> window.open(currentArtistUrl, "_blank")}>
                   <Text variant='title' color='heading' size='5' strength='default'>{currentTrack}</Text>
                   <Text variant='title' color='default' size='5' strength='default'>{' by '}</Text>
                   <Text variant='title' color='heading' size='5' strength='default' style={{}}>{currentArtist}</Text>                
                 </Button>          
               ) : <></>}
-              
+              */}
             
             </Flex>
           </Flex>
