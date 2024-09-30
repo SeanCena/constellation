@@ -1,6 +1,6 @@
-import { MouseEventHandler, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
-import { sdk, full as FullSdk } from '@audius/sdk'
+import { sdk } from '@audius/sdk'
 import {
   GetTracksByUserSortDirectionEnum as sortTrackDirectionEnum,
   GetTracksByUserSortMethodEnum as sortTrackMethodEnum,
@@ -8,10 +8,6 @@ import {
 } from '@audius/sdk'
 import {
   ThemeProvider as HarmonyThemeProvider,
-  Hint,
-  Paper,
-  Box,
-  Divider,
   Text,
   TextInput,
   TextInputSize
@@ -22,14 +18,12 @@ import {
   IconPlus,
   IconMinus,
   IconCaretLeft,
-  IconPause,
-  IconPlay
 } from '@audius/harmony'
 import { Button, Flex } from '@audius/harmony'
-import { css } from '@emotion/react'
 import StarCanvas from './components/canvas'
 import {LeaderboardProfile, PreviewProfile} from './components/profile'
 
+/*
 var bgColors = {    "Default": "#81b71a",
                     "Blue": "#00B1E1",
                     "Cyan": "#37BC9B",
@@ -37,7 +31,7 @@ var bgColors = {    "Default": "#81b71a",
                     "Red": "#E9573F",
                     "Yellow": "#F6BB42",
 };
-
+*/
 
 const audiusSdk = sdk({
   appName: 'Constellation',
@@ -484,11 +478,11 @@ export default function App() {
                   gap='l' w='100%' p='l'
                   backgroundColor='white' borderRadius='s'>
               <Text variant='title' color='heading' size='l' strength='default'>{panelTitle}</Text>
-              <Text variant='title' color='active' size='1' strength='default'>{'Top Artists'}</Text>
+              <Text variant='title' color='active' size='m' strength='default'>Top Artists</Text>
               {panelArtists.slice(0,5).map((artist) => (
                 <LeaderboardProfile userId={artist.id} key={artist.id}></LeaderboardProfile>
               ))}
-              <Text variant='title' color='active' size='0.7' strength='default'>{'Fresh Faces'}</Text>
+              <Text variant='title' color='active' size='m' strength='default'>Fresh Faces</Text>
               {/* <Text variant='title' color='default' size='l' strength='default'>{'...'}</Text> */}
               {panelArtists.slice(-2).map((artist) => (
                 <LeaderboardProfile userId={artist.id} key={artist.id}></LeaderboardProfile>

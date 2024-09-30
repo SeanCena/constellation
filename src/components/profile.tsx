@@ -1,22 +1,8 @@
-import React, { useState, useEffect } from 'react'
-import { sdk, full as FullSdk } from '@audius/sdk'
+import { useState, useEffect } from 'react'
+import { sdk } from '@audius/sdk'
 import {
-    ThemeProvider as HarmonyThemeProvider,
-    Hint,
     Paper,
-    Box,
-    Text,
-    TextInput,
-    TextInputSize
-} from '@audius/harmony'
-import {
-    IconAudiusLogoColor,
-    IconInfo,
-    IconPlus,
-    IconMinus,
-    IconCaretLeft,
-    IconPause,
-    IconPlay
+    Text
 } from '@audius/harmony'
 import { Button, Flex, Avatar } from '@audius/harmony'
 
