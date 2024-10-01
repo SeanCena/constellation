@@ -20,7 +20,7 @@ import {
   IconCaretLeft,
 } from '@audius/harmony'
 import { Button, Flex } from '@audius/harmony'
-import StarCanvas from './components/canvas'
+import { StarCanvas, StarCanvasRef } from './components/canvas'
 import {LeaderboardProfile, PreviewProfile} from './components/profile'
 
 /*
@@ -70,7 +70,7 @@ export default function App() {
   const [popupY, setPopupY] = useState(0);        // popup y pos relative to the map coords
 
   // Search bar ref and states
-  const searchRef = useRef(null);
+  const searchRef = useRef<HTMLInputElement>(null);
   const [searchButtonText, setSearchButtonText] = useState('Find artist');
 
   // Top info bar states
@@ -87,7 +87,7 @@ export default function App() {
   const [freezeProfiles, setFreezeProfiles] = useState(false);
 
   // Canvas ref and states
-  const canvasRef = useRef(null);
+  const canvasRef = useRef<StarCanvasRef>(null);
   const [offsetX, setOffsetX] = useState(0);
   const [offsetY, setOffsetY] = useState(0);
   const [prevOffsetX, setPrevOffsetX] = useState(0);
@@ -97,7 +97,7 @@ export default function App() {
   const [highlight, setHighlight] = useState('');
 
   // Audio ref and states
-  const audioRef = useRef(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
   const [audioSrc, setAudioSrc] = useState('');
   const [audioIsPlaying, setAudioIsPlaying] = useState(false);
   //IZ: For currently playing bar

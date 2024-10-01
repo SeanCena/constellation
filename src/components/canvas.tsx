@@ -1,4 +1,4 @@
-import React, { useRef, useImperativeHandle, useEffect, useState, forwardRef } from 'react';
+import { useRef, useImperativeHandle, useEffect, useState, forwardRef } from 'react';
 
 
 
@@ -20,7 +20,11 @@ interface CanvasProps {
     highlight;
 }
 
-const StarCanvas: React.FC = forwardRef((props: CanvasProps, ref) => {
+interface StarCanvasRef {
+    canvasElement: HTMLCanvasElement | null;
+}
+
+const StarCanvas = forwardRef<StarCanvasRef, CanvasProps>((props, ref) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const [dimensions, setDimensions] = useState<Dimensions>({ width: 0, height: 0 });
@@ -140,7 +144,7 @@ function drawStars(ctx, canvasData, highlight, zoom, offsetX, offsetY, color_s=S
             if (cluster.id == highlight) {
                 drawGlowingStar(ctx, x, y, zoom, offsetX, offsetY, scale, color_s, color_h, 4);
             } else {
-                drawGlowingStar(ctx, x, y, zoom, offsetX, offsetY, scale, color_s, color_g, 2);
+                drawGlowingStar(ctx, x, y, zoom, offsetX, offsetY, scale, color_s, color_g, 0.5 * zoom ** 1.5);  // reduce glow to improve performance
             }
         });
     });
@@ -199,4 +203,5 @@ function drawStarChartBackground(ctx, zoom, offsetX, offsetY) {
     ctx.restore();
 }
 
-export default StarCanvas;
+export {StarCanvas};
+export type {StarCanvasRef};
