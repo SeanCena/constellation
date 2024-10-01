@@ -50,8 +50,9 @@ const MIN_ZOOM = 0.1;
 
 // Lookup table
 const STORAGE_ENDPOINT = "https://raw.githubusercontent.com/SeanCena/audiusdata/refs/heads/main/";  // github for the demo
-const clusterLut = await (await fetch(STORAGE_ENDPOINT + "id_to_cluster_lut.json")).json();
-const topLvlData = await (await fetch(STORAGE_ENDPOINT + "cluster_0.json")).json();
+// const clusterLut = await (await fetch(STORAGE_ENDPOINT + "id_to_cluster_lut.json")).json();
+// const topLvlData = await (await fetch(STORAGE_ENDPOINT + "cluster_0.json")).json();
+// Github pages doesn't like top level await
 
 export default function App() {
 
@@ -114,6 +115,7 @@ export default function App() {
     });
     if (users.data !== undefined) {
       if (users.data.length > 0) {
+        const clusterLut = await (await fetch(STORAGE_ENDPOINT + "id_to_cluster_lut.json")).json();
         let clusterId = undefined;
         users.data.some((user)=>{
           // Iterate through all search results, go to the first one found in the lookup table
@@ -126,7 +128,13 @@ export default function App() {
           // Load data for clusterId, change info text, change app state
           loadData(clusterId);
           let clusterName = "";
-          topLvlData.data.forEach((cluster)=>{ if (cluster.id === clusterId) clusterName = cluster.name; });
+          const topLvlData = await (await fetch(STORAGE_ENDPOINT + "cluster_0.json")).json();
+          topLvlData.data.some((cluster)=>{
+            if (cluster.id === clusterId) {
+              clusterName = cluster.name;
+              return true;
+            }
+          });
           setInfoText(clusterName);
           setAppState(STATE_SUBLEVEL);
           setSearchButtonText("Find user");
@@ -155,14 +163,10 @@ export default function App() {
 
   // Load new data in canvas
   const loadData = async (clusterId) => {
-    if (clusterId === "cluster_0") {
-      setCanvasData(topLvlData);  // top level data is already downloaded, no need to download again
-    } else {
-      const url = STORAGE_ENDPOINT + clusterId + ".json";
-      const data = await fetch(url);
-      const clusterData = await data.json();
-      setCanvasData(clusterData);
-    }
+    const url = STORAGE_ENDPOINT + clusterId + ".json";
+    const data = await fetch(url);
+    const clusterData = await data.json();
+    setCanvasData(clusterData);
   }
 
   // Given a coordinate pair, return which artist it is close to, along with their subcluster
